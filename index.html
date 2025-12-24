@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Multiverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;900&family=Playfair+Display:ital,wght@1,900&family=Inter:wght@300;400;500;600;800&family=Bodoni+Moda:ital,wght@1,900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #c5a368;
+            --bg: #0a0a0c;
+            --text: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.02);
+            --font-main: 'Inter', sans-serif;
+            --font-accent: 'Inter', sans-serif;
+            --bezier: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .style-pro { --accent: #c5a368; --bg: #070708; --font-accent: 'Inter', sans-serif; }
+        .style-picasso { --accent: #d97706; --bg: #0c0c0e; --font-accent: 'Unbounded', sans-serif; }
+        .style-vangogh { --accent: #facc15; --bg: #0f172a; --font-accent: 'Playfair Display', serif; }
+        .style-whiskey { --accent: #f59e0b; --bg: #0f0a05; --font-accent: 'Bodoni Moda', serif; --card-bg: rgba(255, 170, 0, 0.03); }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            transition: background-color 1.2s var(--bezier);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        .accent-font { font-family: var(--font-accent); }
+
+        /* --- Custom Cursor --- */
+        #cursor-follower {
+            position: fixed;
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+            transition: background-color 0.5s var(--bezier), width 0.3s var(--bezier), height 0.3s var(--bezier), border-radius 0.4s var(--bezier);
+            transform: translate(-50%, -50%);
+            will-change: transform;
+        }
+
+        #cursor-dot {
+            position: fixed;
+            width: 5px;
+            height: 5px;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10001;
+            transform: translate(-50%, -50%);
+            will-change: transform;
+        }
+
+        /* --- Navigation Redesign --- */
+        .nav-wrapper {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            gap: 4px;
+        }
+
+        /* Жидкий фон для кнопок */
+        .nav-liquid-bg {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            height: calc(100% - 8px);
+            background: var(--accent);
+            border-radius: 999px;
+            z-index: 1;
+            transition: all 0.6s var(--bezier);
+            filter: blur(2px);
+            box-shadow: 0 0 20px var(--accent);
+        }
+
+        .nav-btn {
+            position: relative;
+            z-index: 10;
+            padding: 8px 18px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.4s var(--bezier);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-btn.active {
+            color: #000;
+        }
+
+        .nav-btn svg {
+            width: 14px;
+            height: 14px;
+            opacity: 0.6;
+            transition: opacity 0.4s var(--bezier);
+        }
+
+        .nav-btn.active svg {
+            opacity: 1;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.6;
+        }
+
+        /* --- Motion UI Design --- */
+        .magnetic {
+            display: inline-block;
+            transition: transform 0.6s var(--bezier);
+            will-change: transform;
+        }
+
+        .model-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 1s var(--bezier), border-color 0.4s ease, box-shadow 1s var(--bezier), opacity 1s var(--bezier);
+            will-change: transform, opacity;
+        }
+
+        .style-picasso .model-card {
+            clip-path: polygon(4% 0%, 100% 8%, 96% 100%, 0% 92%);
+        }
+
+        .style-vangogh .model-card {
+            border-radius: 80px 20px 80px 20px / 20px 80px 20px 80px;
+        }
+
+        .style-whiskey .model-card {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.05);
+        }
+
+        .model-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-20px) scale(1.05) rotate(0deg) !important;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.8);
+            z-index: 20;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(40px);
+            background: rgba(0, 0, 0, 0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(60px) scale(0.98);
+            transition: opacity 1.2s var(--bezier), transform 1.2s var(--bezier);
+        }
+        .reveal.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Shutter Effect */
+        #shutter {
+            position: fixed;
+            inset: 0;
+            background: var(--accent);
+            z-index: 9999;
+            transform: scaleY(0);
+            transform-origin: bottom;
+            pointer-events: none;
+        }
+
+        .shutter-anim {
+            animation: shutterSweep 1.2s var(--bezier);
+        }
+
+        @keyframes shutterSweep {
+            0% { transform: scaleY(0); transform-origin: bottom; }
+            50% { transform: scaleY(1); transform-origin: bottom; }
+            51% { transform: scaleY(1); transform-origin: top; }
+            100% { transform: scaleY(0); transform-origin: top; }
+        }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); }
+
+        .active-filter {
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+        }
+
+        /* Copy Toast */
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent);
+            color: black;
+            padding: 0.8rem 2rem;
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            border-radius: 4px;
+            z-index: 10002;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body class="style-pro antialiased">
+
+    <div id="cursor-follower"></div>
+    <div id="cursor-dot"></div>
+    <div id="shutter"></div>
+    <div id="toast" class="copy-toast">System: Prompt Copied</div>
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 glass-nav px-10 py-6 flex justify-between items-center">
+        <div class="flex items-center gap-6">
+            <span class="accent-font text-3xl font-black uppercase tracking-tighter magnetic" id="site-logo">AI.Multiverse</span>
+        </div>
+        
+        <div class="flex items-center gap-10">
+            <div class="nav-wrapper">
+                <div class="nav-liquid-bg" id="liquid-bg"></div>
+                <button onclick="changeStyle('pro')" class="nav-btn active" id="btn-pro">
+                    
+                    Pro
+                </button>
+                <button onclick="changeStyle('picasso')" class="nav-btn" id="btn-picasso">
+                    
+                    Picasso
+                </button>
+                <button onclick="changeStyle('vangogh')" class="nav-btn" id="btn-vangogh">
+                    
+                    Vincent
+                </button>
+                <button onclick="changeStyle('whiskey')" class="nav-btn" id="btn-whiskey">
+                    
+                    Whiskey
+                </button>
+            </div>
+            
+            <button onclick="toggleSettings()" class="magnetic group p-3 bg-white/5 rounded-full hover:bg-white hover:text-black transition-all">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Settings Modal -->
+    <div id="settings" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl hidden">
+        <div class="bg-zinc-900/80 p-12 border border-white/10 max-w-lg w-full rounded-2xl shadow-2xl">
+            <h3 class="accent-font text-3xl font-black mb-8 text-white">Identity Core</h3>
+            <label class="block text-[10px] uppercase tracking-widest text-zinc-500 mb-4">Assistant Signature</label>
+            <input type="text" id="asst-name" value="The Architect" class="w-full bg-white/5 border border-white/10 p-5 outline-none focus:border-amber-500 mb-10 text-xl text-white font-bold rounded-lg">
+            <div class="flex gap-6">
+                <button onclick="saveSettings()" class="flex-1 py-5 bg-amber-600 font-black uppercase text-[11px] tracking-[0.3em] hover:bg-amber-500 transition-all rounded-lg">Update System</button>
+                <button onclick="toggleSettings()" class="px-8 py-5 border border-white/10 text-[11px] font-bold uppercase tracking-widest hover:bg-white/5 transition-all rounded-lg">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hero -->
+    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6 relative pt-32 overflow-hidden">
+        <div class="reveal active">
+            <h1 class="accent-font text-[16vw] md:text-[10vw] font-black leading-none mb-8 italic tracking-tighter" id="hero-title">The Core.</h1>
+            <p class="max-w-3xl text-zinc-400 text-lg md:text-2xl font-light mb-16 opacity-60 leading-tight" id="hero-desc">
+                Манифест цифровой эстетики. Исследуйте 80+ верифицированных моделей сквозь призму жидкого движения и кубизма.
+            </p>
+            <button onclick="document.getElementById('gallery').scrollIntoView({behavior:'smooth'})" class="magnetic px-16 py-6 bg-white text-black font-black uppercase text-[11px] tracking-[0.4em] hover:bg-amber-500 transition-all shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                Initialize Search
+            </button>
+        </div>
+    </section>
+
+    <!-- Advisor -->
+    <section id="advisor" class="py-60 px-8 max-w-7xl mx-auto reveal">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
+            <div class="space-y-12">
+                <h2 class="accent-font text-7xl font-black mb-10 leading-[0.85]">Consult <br><span id="display-asst-name" class="text-amber-500 italic">The Architect</span></h2>
+                <p class="text-zinc-500 text-xl font-medium leading-relaxed">Опишите задачу. Мы подберем купаж из нейросетей, идеально подходящий под ваши потребности.</p>
+                <div class="relative">
+                    <textarea id="advisor-query" placeholder="Опишите ваш проект..." class="w-full bg-white/5 border border-white/10 p-10 h-64 outline-none focus:border-amber-500 transition-all text-lg resize-none text-white font-medium rounded-xl"></textarea>
+                </div>
+                <button onclick="runAdvisor()" id="advisor-btn" class="magnetic w-full py-7 bg-zinc-900 border border-zinc-800 text-white font-black uppercase text-[12px] tracking-[0.5em] hover:bg-white hover:text-black transition-all">Generate Strategy</button>
+            </div>
+            <div id="advisor-result" class="min-h-[600px] border border-white/5 p-16 flex flex-col justify-center bg-black/40 shadow-2xl relative rounded-3xl overflow-hidden">
+                <div id="advisor-empty" class="text-center opacity-10">
+                    <div class="mb-10 mx-auto w-24 h-24 border-4 border-dashed border-amber-500 rounded-full animate-spin-slow"></div>
+                    <p class="uppercase tracking-[0.6em] text-sm font-bold">Resonance Waiting</p>
+                </div>
+                <div id="advisor-content" class="hidden space-y-12"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery -->
+    <section id="gallery" class="py-40 px-8 max-w-[1900px] mx-auto">
+        <div class="flex flex-col lg:flex-row justify-between items-end gap-20 mb-40 reveal">
+            <div class="w-full lg:w-2/3">
+                <h3 class="accent-font text-[10rem] font-black italic opacity-5 text-white mb-10 leading-none">The Vault</h3>
+                <div class="flex flex-wrap gap-12 text-[12px] font-black uppercase tracking-[0.3em] text-zinc-600" id="filter-bar">
+                    <span onclick="setFilter('all')" class="cursor-pointer hover:text-amber-500 transition-all active-filter" data-cat="all">All Essence</span>
+                    <span onclick="setFilter('video')" class="cursor-pointer hover:text-amber-500 transition-all" data-cat="video">Video</span>
+                    <span onclick="setFilter('image')" class="cursor-pointer hover:text-amber-500 transition-all" data-cat="image">Visuals</span>
+                    <span onclick="setFilter('audio')" class="cursor-pointer hover:text-amber-500 transition-all" data-cat="audio">Sonic</span>
+                    <span onclick="setFilter('llm')" class="cursor-pointer hover:text-amber-500 transition-all" data-cat="llm">Thought</span>
+                    <span onclick="setFilter('code')" class="cursor-pointer hover:text-amber-500 transition-all" data-cat="code">Logic</span>
+                </div>
+            </div>
+            <div class="w-full lg:w-1/3 flex flex-col items-end">
+                <input type="text" id="search-input" oninput="handleSearch()" placeholder="Find intelligence..." class="w-full bg-transparent border-b-4 border-white/5 py-6 outline-none focus:border-amber-500 transition-all font-light text-5xl text-white">
+                <div id="tool-counter" class="text-[12px] uppercase tracking-widest text-zinc-700 mt-8 font-black">Syncing: 0 Models</div>
+            </div>
+        </div>
+        <div id="grid-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-12"></div>
+    </section>
+
+    <footer class="py-80 border-t border-white/5 text-center relative overflow-hidden">
+        <div class="accent-font text-8xl font-black mb-12 text-white magnetic opacity-20">AI Multiverse</div>
+        <p class="text-[12px] uppercase tracking-[1em] text-zinc-800 font-black">EST. 2025 // MOTION ARCHIVE</p>
+    </footer>
+
+    <script>
+        // --- GLOBAL STATE ---
+        const apiKey = "AIzaSyBFM4gPajzm9BjClnc5cDfcdX4HQT7paqM";
+        let currentStyle = 'pro';
+        let assistantName = "The Architect";
+        let isTransitioning = false;
+        let currentFilter = 'all';
+        let searchQuery = '';
+
+        const AI_DATA = [
+            { name: "Runway Gen-3", cat: "video", url: "https://runwayml.com", company: "Runway", desc: "Профессиональный стандарт генеративного видео с полным контролем над движением." },
+            { name: "Luma Dream Machine", cat: "video", url: "https://lumalabs.ai", company: "Luma AI", desc: "Невероятно плавная и фотореалистичная анимация из статики." },
+            { name: "Flux.1 [Pro]", cat: "image", url: "https://blackforestlabs.ai", company: "BFL", desc: "Самый качественный рендеринг текстур и текста на изображениях." },
+            { name: "Midjourney v6", cat: "image", url: "https://midjourney.com", company: "Midjourney", desc: "Золотой стандарт ИИ-эстетики и освещения." },
+            { name: "Claude 3.5 Sonnet", cat: "llm", url: "https://claude.ai", company: "Anthropic", desc: "Мастер нюансов, чистого кода и естественного языка." },
+            { name: "ChatGPT (GPT-4o)", cat: "llm", url: "https://chatgpt.com", company: "OpenAI", desc: "Универсальный стандарт мультимодального помощника." },
+            { name: "ElevenLabs", cat: "audio", url: "https://elevenlabs.io", company: "ElevenLabs", desc: "Золотой стандарт синтеза и клонирования речи." },
+            { name: "Suno v3.5", cat: "audio", url: "https://suno.com", company: "Suno", desc: "Создание полноценных песен с вокалом за секунды." },
+            { name: "Cursor", cat: "code", url: "https://cursor.com", company: "Anysphere", desc: "Лучший на сегодня редактор кода со встроенным интеллектом." },
+            { name: "Kling AI", cat: "video", url: "https://klingai.com", company: "Kuaishou", desc: "Революционная модель для длинных видео с физикой." },
+            { name: "Pika 1.5", cat: "video", url: "https://pika.art", company: "Pika Labs", desc: "Эффекты деформации (Pikaffects) и анимация." },
+            { name: "Magnific AI", cat: "image", url: "https://magnific.ai", company: "Magnific", desc: "Тяжелая артиллерия для детализации и апскейла." },
+            { name: "Perplexity", cat: "llm", url: "https://perplexity.ai", company: "Perplexity", desc: "ИИ-поисковик нового поколения с доступом к реальному времени." }
+        ];
+
+        const extras = ["Codeium", "DeepSeek", "Ideogram", "Leonardo", "Vizcom", "Meshy", "Spline AI", "Otter.ai", "Consensus", "Gamma", "Tome"];
+        extras.forEach(name => {
+            AI_DATA.push({ 
+                name: name, 
+                cat: name.toLowerCase().includes('ai') ? "video" : "llm", 
+                url: "#", 
+                company: "Global Tech", 
+                desc: "Индустриальное решение для контента и анализа данных." 
+            });
+        });
+
+        // --- CUSTOM CURSOR ENGINE ---
+        const follower = document.getElementById('cursor-follower');
+        const dot = document.getElementById('cursor-dot');
+        let mouseX = 0, mouseY = 0, ballX = 0, ballY = 0;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX; mouseY = e.clientY;
+            dot.style.left = mouseX + 'px';
+            dot.style.top = mouseY + 'px';
+        });
+
+        function updateCursor() {
+            let lerpSpeed = 0.15;
+            ballX += (mouseX - ballX) * lerpSpeed;
+            ballY += (mouseY - ballY) * lerpSpeed;
+            follower.style.left = ballX + 'px';
+            follower.style.top = ballY + 'px';
+            requestAnimationFrame(updateCursor);
+        }
+        updateCursor();
+
+        // --- MAGNETIC EFFECT ---
+        document.addEventListener('mousemove', (e) => {
+            const magnetics = document.querySelectorAll('.magnetic');
+            magnetics.forEach(el => {
+                const rect = el.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const dist = Math.sqrt(Math.pow(e.clientX - centerX, 2) + Math.pow(e.clientY - centerY, 2));
+                
+                if (dist < 150) {
+                    const power = (150 - dist) / 150;
+                    el.style.transform = `translate(${(e.clientX - centerX) * 0.4 * power}px, ${(e.clientY - centerY) * 0.4 * power}px)`;
+                    follower.style.width = '60px';
+                    follower.style.height = '60px';
+                } else {
+                    el.style.transform = `translate(0,0)`;
+                    follower.style.width = '24px';
+                    follower.style.height = '24px';
+                }
+            });
+        });
+
+        // --- STYLE SWITCHER ---
+        function changeStyle(style) {
+            if (isTransitioning || style === currentStyle) return;
+            isTransitioning = true;
+            const shutter = document.getElementById('shutter');
+            shutter.classList.add('shutter-anim');
+
+            setTimeout(() => {
+                currentStyle = style;
+                document.body.className = `style-${style} antialiased`;
+                
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.id === `btn-${style}`);
+                });
+
+                // Update Liquid BG Position
+                const activeBtn = document.getElementById(`btn-${style}`);
+                const liquidBg = document.getElementById('liquid-bg');
+                liquidBg.style.width = activeBtn.offsetWidth + 'px';
+                liquidBg.style.left = activeBtn.offsetLeft + 'px';
+
+                const titles = { pro: "The Core.", picasso: "Fragmented.", vangogh: "Turbulent.", whiskey: "Reserve." };
+                document.getElementById('hero-title').innerText = titles[style];
+                
+                renderGallery();
+                initSmoke();
+            }, 600);
+
+            setTimeout(() => {
+                shutter.classList.remove('shutter-anim');
+                isTransitioning = false;
+            }, 1200);
+        }
+
+        // Initialize Liquid BG
+        function initNav() {
+            const activeBtn = document.querySelector('.nav-btn.active');
+            const liquidBg = document.getElementById('liquid-bg');
+            if(activeBtn && liquidBg) {
+                liquidBg.style.width = activeBtn.offsetWidth + 'px';
+                liquidBg.style.left = activeBtn.offsetLeft + 'px';
+            }
+        }
+
+        // --- ADVISOR ENGINE ---
+        async function runAdvisor() {
+            const query = document.getElementById('advisor-query').value;
+            if(!query) return;
+
+            const btn = document.getElementById('advisor-btn');
+            const resultBox = document.getElementById('advisor-content');
+            const empty = document.getElementById('advisor-empty');
+            
+            btn.disabled = true;
+            btn.innerText = "Analyzing Neural Resonance...";
+            empty.classList.add('hidden');
+            resultBox.classList.remove('hidden');
+            resultBox.innerHTML = `<div class="animate-pulse space-y-10"><div class="h-2 bg-amber-500/20 w-full rounded"></div><div class="h-64 bg-white/5 rounded-3xl"></div></div>`;
+
+            const styleTone = {
+                pro: "Деловой, футуристичный тон архитектора систем.",
+                picasso: "Абстрактный, используй кубистические термины.",
+                vangogh: "Экспрессивный, используй слова: потоки, мазки.",
+                whiskey: "Тон элитного сомелье."
+            };
+
+            const systemPrompt = `Твоё имя: ${assistantName}. ${styleTone[currentStyle]} Подбери стек из реальных ИИ: Runway, Luma, Midjourney, Flux, ElevenLabs.
+            Стратегия - на русском. Промпт в поле 'prompt' - строго на английском.
+            Формат JSON: { "title": "...", "steps": [{"tool": "...", "desc": "..."}], "prompt": "...", "alternative": { "name": "...", "reason": "..." } }`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: query }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { responseMimeType: "application/json" }
+                    })
+                });
+                const data = await response.json();
+                const res = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                resultBox.innerHTML = `
+                    <div class="animate-in fade-in slide-in-from-bottom-12 duration-1000">
+                        <h4 class="accent-font text-4xl font-black mb-10 italic text-amber-500">${res.title}</h4>
+                        <div class="space-y-8">
+                            ${res.steps.map(s => `
+                                <div class="p-8 bg-white/5 border-l-4 border-amber-500 rounded-r-2xl">
+                                    <div class="text-[10px] font-black uppercase text-zinc-500 mb-2 tracking-[0.4em]">${s.tool}</div>
+                                    <div class="text-lg font-medium leading-relaxed">${s.desc}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="mt-16 p-10 bg-amber-500/5 border border-amber-500/10 rounded-3xl">
+                            <div class="text-[11px] font-black uppercase text-amber-500 mb-4 tracking-[0.5em]">Selected Alternative</div>
+                            <div class="text-2xl font-bold mb-3">${res.alternative.name}</div>
+                            <div class="text-sm text-zinc-400 italic">${res.alternative.reason}</div>
+                        </div>
+                        <div class="mt-16 relative">
+                            <button onclick="copyPrompt(\`${res.prompt.replace(/`/g, '\\`').replace(/\${/g, '\\${')}\`)" class="absolute top-6 right-6 text-[10px] font-black uppercase text-amber-500 hover:text-white transition-all bg-black/40 px-4 py-2 rounded-lg">Copy Prompt</button>
+                            <pre class="bg-black/60 p-10 text-[12px] font-mono text-amber-500/70 border border-white/5 overflow-x-auto rounded-3xl whitespace-pre-wrap leading-relaxed">${res.prompt}</pre>
+                        </div>
+                    </div>
+                `;
+            } catch (err) {
+                resultBox.innerHTML = `<p class="text-red-500 font-bold uppercase tracking-widest text-center">Neural Resonance Interrupted.</p>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Generate Strategy";
+            }
+        }
+
+        // --- GALLERY RENDERING ---
+        function renderGallery() {
+            const container = document.getElementById('grid-container');
+            container.innerHTML = '';
+            
+            const filtered = AI_DATA.filter(item => {
+                const matchesFilter = currentFilter === 'all' || item.cat === currentFilter;
+                const matchesSearch = item.name.toLowerCase().includes(searchQuery) || item.desc.toLowerCase().includes(searchQuery);
+                return matchesFilter && matchesSearch;
+            });
+
+            filtered.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'model-card p-12 reveal active h-full';
+                const rot = (index % 2 === 0 ? 1 : -1) * (Math.random() * 6);
+                card.style.setProperty('--rot', `${rot}deg`);
+                card.style.transitionDelay = `${(index % 12) * 80}ms`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-10">
+                        <span class="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500 border border-amber-500/20 px-4 py-1.5">${item.cat}</span>
+                    </div>
+                    <h4 class="accent-font text-3xl font-black mb-6 tracking-tighter text-white">${item.name}</h4>
+                    <p class="text-[13px] text-zinc-500 leading-relaxed mb-12 line-clamp-3 font-medium">${item.desc}</p>
+                    <div class="flex justify-between items-center pt-10 border-t border-white/5 mt-auto">
+                        <a href="${item.url}" target="_blank" class="text-[11px] font-black uppercase tracking-[0.3em] hover:text-amber-500 transition-all flex items-center gap-3">
+                            Connect <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M14 5l7 7-7 7M5 12h16"/></svg>
+                        </a>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            document.getElementById('tool-counter').innerText = `Syncing: ${filtered.length} Models`;
+        }
+
+        function setFilter(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('#filter-bar span').forEach(el => {
+                el.classList.toggle('active-filter', el.getAttribute('data-cat') === cat);
+            });
+            renderGallery();
+        }
+
+        function handleSearch() {
+            searchQuery = document.getElementById('search-input').value.toLowerCase();
+            renderGallery();
+        }
+
+        function copyPrompt(text) {
+            const temp = document.createElement("textarea");
+            temp.value = text;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand("copy");
+            document.body.removeChild(temp);
+            const toast = document.getElementById('toast');
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2000);
+        }
+
+        function toggleSettings() { document.getElementById('settings').classList.toggle('hidden'); }
+        function saveSettings() {
+            assistantName = document.getElementById('asst-name').value || "The Architect";
+            document.getElementById('display-asst-name').innerText = assistantName;
+            toggleSettings();
+        }
+
+        // --- FLUID CANVAS ENGINE ---
+        let particles = [];
+        let animationId;
+        function initSmoke() {
+            if(animationId) cancelAnimationFrame(animationId);
+            const canvas = document.getElementById('bg-canvas');
+            const ctx = canvas.getContext('2d');
+            particles = [];
+            function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize);
+            resize();
+
+            class Particle {
+                constructor() { this.reset(); }
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * (currentStyle === 'pro' ? 250 : 600) + 150;
+                    this.speedX = (Math.random() - 0.5) * 0.4;
+                    this.speedY = (Math.random() - 0.5) * 0.4;
+                    this.alpha = Math.random() * 0.1 + 0.03;
+                    
+                    if(currentStyle === 'pro') this.color = '200, 200, 200';
+                    else if(currentStyle === 'picasso') this.color = Math.random() > 0.5 ? '217, 119, 6' : '30, 58, 138';
+                    else if(currentStyle === 'vangogh') this.color = Math.random() > 0.5 ? '250, 204, 21' : '30, 58, 138';
+                    else this.color = '245, 158, 11';
+                }
+                update() {
+                    if(currentStyle === 'vangogh') {
+                        let angle = Math.atan2(this.y - canvas.height/2, this.x - canvas.width/2);
+                        this.x += Math.cos(angle + 0.8) * 0.8;
+                        this.y += Math.sin(angle + 0.8) * 0.8;
+                    } else if(currentStyle === 'whiskey') {
+                        this.y -= 0.6; // Rising flow
+                        this.x += Math.sin(this.y * 0.005) * 1;
+                    } else if(currentStyle === 'picasso') {
+                        this.x += Math.cos(this.speedX * 100) * 1.5;
+                        this.y += Math.sin(this.speedY * 100) * 1.5;
+                    } else {
+                        this.x += this.speedX; this.y += this.speedY;
+                    }
+                    if(this.x < -this.size || this.x > canvas.width + this.size || this.y < -this.size || this.y > canvas.height + this.size) this.reset();
+                }
+                draw() {
+                    ctx.beginPath();
+                    let g = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+                    g.addColorStop(0, `rgba(${this.color}, ${this.alpha})`);
+                    g.addColorStop(1, `rgba(${this.color}, 0)`);
+                    ctx.fillStyle = g;
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            for(let i=0; i<45; i++) particles.push(new Particle());
+            function animate() {
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                particles.forEach(p => { p.update(); p.draw(); });
+                animationId = requestAnimationFrame(animate);
+            }
+            animate();
+        }
+
+        window.onload = () => {
+            renderGallery();
+            initSmoke();
+            initNav();
+            const obs = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('active'); });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+        };
+    </script>
+</body>
+</html>
